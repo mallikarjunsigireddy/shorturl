@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shorturl-client
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: shorturl-client
+  template:
+    metadata:
+      labels:
+        app: shorturl-client
+    spec:
+      containers:
+      - name: client
+        image: ghcr.io/mallikarjunsigireddy/shorturl-client:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shorturl-client
+spec:
+  type: LoadBalancer
+  selector:
+    app: shorturl-client
+  ports:
+  - port: 3000
+    targetPort: 80

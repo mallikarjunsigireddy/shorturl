@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shorturl-server
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: shorturl-server
+  template:
+    metadata:
+      labels:
+        app: shorturl-server
+    spec:
+      containers:
+      - name: server
+      image: ghcr.io/mallikarjunsigireddy/shorturl-server:latest
+      imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+        env:
+        - name: PORT
+          value: "5000"
+        - name: NODE_ENV
+          value: "production"
+        - name: BASE_URL
+          value: "http://localhost:5000"
+        - name: CLIENT_URL
+          value: "http://localhost:3000"
+        - name: DB_HOST
+          value: "mysql"
+        - name: DB_PORT
+          value: "3306"
+        - name: DB_USER
+          value: "root"
+        - name: DB_PASSWORD
+          value: "rootpassword"
+        - name: DB_NAME
+          value: "tinyurl_db"
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 20
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shorturl-server
+spec:
+  type: LoadBalancer
+  selector:
+    app: shorturl-server
+  ports:
+  - port: 5000
+    targetPort: 5000
