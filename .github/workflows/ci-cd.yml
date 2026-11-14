@@ -1,0 +1,41 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: rootpassword
+          MYSQL_DATABASE: tinyurl_db
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping -h localhost -prootpassword" --health-interval=5s --health-timeout=5s --health-retries=10
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install Server Dependencies & Test
+      run: |
+        cd server
+        npm ci
+
+    - name: Install Client Dependencies & Build
+      run: |
+        cd client
+        npm ci
+        npm run build
